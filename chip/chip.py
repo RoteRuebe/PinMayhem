@@ -76,7 +76,7 @@ class chip():
             self.off(index)
             time.sleep(t_off)
 
-    def dis_bin(self.num):
+    def dis_bin(self,num):
         if type(num) == bytearray:
             num = str(bin(int(num)))
         elif type(num) == int:
@@ -92,7 +92,6 @@ class chip():
         if not LeftToRight:
             fin.reverse()
         self.push(fin)
-
 
     def getState(self,index):
         return self.pins[index]
