@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 import copy,random,pygame,time
+#bug: fill row  n with circled numbers fill the  column n
+#with a certain combo you will not be able to assign the circles at all
+#?self.exec_combos()?
 pygame.init()
 class game:
     def __init__ (self,players):
@@ -49,6 +52,7 @@ class board:
         self.font = pygame.font.SysFont("Comic Sans MS",50)
    
     def main (self,x=None,y=None):
+        #main loop
         self.display()
         
         what = None
@@ -68,87 +72,24 @@ class board:
             self.combos(x,y)      
         
     def combos(self,x,y):
-            circles_row,circles_column,circles_quer1,circles_quer2 = self.check_combos(x,y)
-            self.exec_combos(x,y,circles_row,"row")
-            self.exec_combos(x,y,circles_column,"column")  
-            self.exec_combos(x,y,circles_quer1,"quer1")   
-            self.exec_combos(x,y,circles_quer2,"quer2")   
-
-            pygame.mouse.set_cursor(*pygame.cursors.arrow)
+        #initalize combo searching and execution
+        lists = self.return_lists(x,y)
+        for Iindex,I in enumerate(lists):
+            for Jindex,J in enumerate(I):
+                try:
+                    lists[Iindex][Jindex] = lists[Iindex][Jindex].num
+                except:
+                    pass
             
-    def exec_combos(self,x,y,num,mode):
-        pygame.mouse.set_cursor(*pygame.cursors.diamond)
-        if mode == "row":
-            for I in range(num):
-                a = None
-                while True:
-                    a,b = self.get_mouse()
-                    if a == x:
-                        if not self.get(a,b,"circle"):
-                            self.circle(a,b)
-                            pygame.mixer.Sound.play(self.sound_write)
-                            self.display()
-                            break
-                        else:
-                            pygame.mixer.Sound.play(self.sound_error)
-                    else:
-                        pygame.mixer.Sound.play(self.sound_error) 
+        self.exec_combos(x,y,self.check_for_combos_in_list(lists[0]),"row")
+        self.exec_combos(x,y,self.check_for_combos_in_list(lists[1]),"column")  
+        self.exec_combos(x,y,self.check_for_combos_in_list(lists[2]),"quer1")   
+        self.exec_combos(x,y,self.check_for_combos_in_list(lists[3]),"quer2")   
+
+        pygame.mouse.set_cursor(*pygame.cursors.arrow)
         
-        if mode == "column":
-            for I in range(num):
-                a = None
-                while True:
-                    a,b = self.get_mouse()
-                    if b == y:
-                        if not self.get(a,b,"circle"):
-                            self.circle(a,b)
-                            pygame.mixer.Sound.play(self.sound_write)
-                            self.display()
-                            break
-                        else:
-                            pygame.mixer.Sound.play(self.sound_error)
-                    else:
-                        pygame.mixer.Sound.play(self.sound_error)
-                
-        if mode == "quer1":
-            for I in range(num):
-                    a = None
-                    while True:
-                        a,b = self.get_mouse()
-                        if a == b:
-                            if not self.get(a,b,"circle"):
-                                self.circle(a,b)
-                                pygame.mixer.Sound.play(self.sound_write)
-                                self.display()
-                                break
-                            else:
-                                pygame.mixer.Sound.play(self.sound_error)
-                                
-                        else:
-                            pygame.mixer.Sound.play(self.sound_error)
-
-        if mode == "quer2":
-            for I in range(num):
-                    a = None
-                    while True:
-                        a,b = self.get_mouse()
-                        if a+b == 4:
-                            if not self.get(a,b,"circle"):
-                                self.circle(a,b)
-                                pygame.mixer.Sound.play(self.sound_write)
-                                self.display()
-                                break
-                            else:
-                                pygame.mixer.Sound.play(self.sound_error)
-                                
-                        else:
-                            pygame.mixer.Sound.play(self.sound_error)
-                            
-    pygame.mouse.set_cursor(*pygame.cursors.arrow)
-
-                 
-    def check_combos(self,x,y):
-        #initalize a list with the numbers of row[num] or column[num]
+    def return_lists(self,x,y):
+        #return lists of row, column and diagonals map(x|y) is part off
         fin_x = []
         fin_y = []
         fin_q1 = []
@@ -158,34 +99,30 @@ class board:
         for row in self.map:
             fin_x.append(row[x])
         for index,I in enumerate(fin_x):
-            fin_x[index] = I.num
+            fin_x[index] = I
         for index,I in enumerate(fin_y):
-            fin_y[index] = I.num
+            fin_y[index] = I
             
         if x == y:
             for I in range(5):
-                fin_q1.append(self.get(I,I))
-            fin_q1 = self.check_for_combos_in_list(fin_q1)
+                fin_q1.append(self.get(I,I,""))
         else:
-            fin_q1 = 0
+            fin_q1 = [None]*5
 
         if x + y == 4:
             for x,y in ((4,0),(3,1),(2,2),(1,3),(0,4)):
-                fin_q2.append(self.get(x,y))
-            fin_q2 = self.check_for_combos_in_list(fin_q2)
+                fin_q2.append(self.get(x,y,""))
         else:
-            fin_q2 = 0
-        
-        fin_x = self.check_for_combos_in_list(fin_x)
-        fin_y = self.check_for_combos_in_list(fin_y)
+            fin_q2 = [None]*5
+            
             
         return fin_x,fin_y,fin_q1,fin_q2
     
     def check_for_combos_in_list(self,list):
+        #check for certain combos in list and return, how many circles that is worth
         if None in list:
-            #hasnt reached the end = 0 points
             return 0
-        #check for duples
+        
         for I in range(2,13):
             if list.count(I) == 5:
                 return 3
@@ -193,26 +130,106 @@ class board:
                 return 2
             if list.count(I) == 3:
                 for J in range(2,13):
-                    #full house?
                     if list.count(J) == 2:
-                        return 2 #yes!
-                return 1 #no :(
+                        return 2
+                return 1
             
             if list.count(I) == 2:
-                #2 zwillinge?  XXX error! geht auch bei nur einem zwilling
+                print(I)
                 for J in range(2,13):
-                    if list.count(J) == 2:
+                    if list.count(J) == 2 and J != I:
+                        print(J)
                         return 1
             
-        #check for street
         list.sort()
         for I in range(4):
             if list[I]+1 != list[I+1]:
-                return 0 #no street
-        return 3 #yes street
+                return 0
+        return 3
+            
+    def exec_combos(self,x,y,num,mode):
+        #let the player choose, where to put num rings
+        pygame.mouse.set_cursor(*pygame.cursors.diamond)
+        if mode == "row":
+            for I in range(num):
+                a = None
+                for I in self.map[x]:
+                    if not I.hasCircle:
+                        while True:
+                            a,b = self.get_mouse()
+                            if a == x:
+                                if not self.get(a,b,"circle"):
+                                    self.circle(a,b)
+                                    pygame.mixer.Sound.play(self.sound_write)
+                                    self.display()
+                                    break
+                                else:
+                                    pygame.mixer.Sound.play(self.sound_error)
+                            else:
+                                pygame.mixer.Sound.play(self.sound_error) 
+                        break
+                            
         
-        
-    def display (self,):
+        if mode == "column":
+            for I in range(num):
+                a = None
+                for I in self.return_lists(x,y)[1]:
+                    if not I.hasCircle:
+                        while True:
+                            a,b = self.get_mouse()
+                            if b == y:
+                                if not self.get(a,b,"circle"):
+                                    self.circle(a,b)
+                                    pygame.mixer.Sound.play(self.sound_write)
+                                    self.display()
+                                    break
+                                else:
+                                    pygame.mixer.Sound.play(self.sound_error)
+                            else:
+                                pygame.mixer.Sound.play(self.sound_error)
+                        break               
+        if mode == "quer1":
+            for I in range(num):
+                    a = None
+                    for I in self.return_lists(x,y)[2]:
+                        if not I.hasCircle:
+                            while True:
+                                a,b = self.get_mouse()
+                                if a == b:
+                                    if not self.get(a,b,"circle"):
+                                        self.circle(a,b)
+                                        pygame.mixer.Sound.play(self.sound_write)
+                                        self.display()
+                                        break
+                                    else:
+                                        pygame.mixer.Sound.play(self.sound_error)
+                                        
+                                else:
+                                    pygame.mixer.Sound.play(self.sound_error)
+                        break
+        if mode == "quer2":
+            for I in range(num):
+                    a = None
+                    for I in self.return_lists(x,y)[3]:
+                        if not I.hasCircle:
+                            while True:
+                                a,b = self.get_mouse()
+                                if a + b == 4:
+                                    if not self.get(a,b,"circle"):
+                                        self.circle(a,b)
+                                        pygame.mixer.Sound.play(self.sound_write)
+                                        self.display()
+                                        break
+                                    else:
+                                        pygame.mixer.Sound.play(self.sound_error)
+                                        
+                                else:
+                                    pygame.mixer.Sound.play(self.sound_error)
+                        break                            
+    pygame.mouse.set_cursor(*pygame.cursors.arrow)
+ 
+    def display (self):
+        #draw to the pygame display
         #reset screen
         self.screen.fill((0,0,0))
         #draw meta-information
@@ -253,6 +270,7 @@ class board:
 
         
     def draw_num(self,x,y,num,circle):
+        #draw a number at pos(x|y)
         x *= self.offset
         y *= self.offset
         
@@ -266,6 +284,7 @@ class board:
         pygame.display.flip()
         
     def get_mouse(self):
+        #wait for mouse input and return (x|y) of mouse
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.MOUSEBUTTONDOWN:
@@ -333,6 +352,8 @@ class player:
         self.board = board(self.name)
         
     def turn(self,dice):
+        
+        dice = (1,1)
         self.board.dice = dice
         self.board.main()
             
