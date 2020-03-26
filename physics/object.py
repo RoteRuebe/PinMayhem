@@ -3,7 +3,7 @@ import pygame
 import pygame.gfxdraw
 import numpy as nm
 
-class object:
+class physical_object:
     def __init__ (self,x,y,m,l,world):
         self.x = x
         self.y = y
@@ -15,11 +15,13 @@ class object:
         
     def tick(self,gravitate=None,test=False):
         if not test:
-            collisions = self.world.collide(self.l,self.tick(gravitate,True))
+            collisions = self.world.collide(self,self.l,self.tick(gravitate,True))
             if 0 in collisions or 2  in collisions:
                 self.f[1] *= -1
             if 1 in collisions or 3 in collisions:
                 self.f[0] *= -1
+            if len(collisions) >= 1:
+                print(collisions,self)
         
         f = self.gravitate(gravitate,test)
         x = self.x; y = self.y
