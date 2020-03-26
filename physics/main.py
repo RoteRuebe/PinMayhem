@@ -3,10 +3,10 @@ import object, world, pygame
 pygame.display.init()
 screen = pygame.display.set_mode((500,500))
 
-w = world.world(0,500,screen)
+w = world.world(0.0005,500,screen)
 
-obj = object.object(250,250,50,10,w)
-obj.apply_force((1,1))
+obj = object.object(250,250,50,1,w)
+obj.apply_force((10,5))
 
 while True:
     w.tick()
