@@ -13,7 +13,9 @@ class world:
         for _ in range(size):
             self.matrix.append(copy.deepcopy(row))
             
-    def new_entity(self,new):
+    def collision()
+            
+    def register_entity(self,new):
         self.entitys.append(new)
             
     def display (self):

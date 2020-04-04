@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
-import world, player
+import world, entity
 
 class main:
     def __init__ (self):
         self.World = world.world()
-        self.Player = player.player(0,0)
-        self.World.new_entity(self.Player)
+        self.Player = entity.player(0,0,self.World)
+        
         self.loop()
         
     def loop (self):
         while True:
             self.World.display()
-            for entity in self.World.entitys:
-                entity.tick()
+            for ent in self.World.entitys:
+                ent.tick()
                 
 
 m = main()
