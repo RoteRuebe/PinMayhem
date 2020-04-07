@@ -99,4 +99,4 @@ def pi(repetition=500000,plot=True,infinite=False,PlotEvery=1,PrintEvery=1,visua
             break
         
 print""*3
-pi(infinite=True,visualise=False,delay=0,PlotEvery=1000000,PrintEvery=500000)
+pi(infinite=True,visualise=True,plot=True,delay=0,PlotEvery=1,PrintEvery=1)

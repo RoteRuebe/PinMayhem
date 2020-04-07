@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import copy, random, pygame, time
+import copy, random, pygame, time, sys
 pygame.init()
 class game:
     def __init__ (self,players):
@@ -436,4 +436,5 @@ class player:
                 
     pygame.mouse.set_cursor(*pygame.cursors.arrow)
             
-g = game( [player("yannick")])
+
+game( list(map(player,sys.argv[1:]))  )
