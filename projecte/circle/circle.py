@@ -90,13 +90,13 @@ while True:
                 lastrec = circle(M,r,screen,color,lastrec,delete)
 
             elif event.key == pygame.K_s:
-                with open("/home/kinder/git/PinMayhem/projecte/circle/colors.txt","at") as f:
+                with open("/home/kinder/git/PinMayhem/projects/circle/colors.txt","at") as f:
                     f.write(str(color)+";"+str(goup)+"\n")
                     
                 print("color saved!")
                 
             elif event.key == pygame.K_g:
-                with open("/home/kinder/git/PinMayhem/projecte/circle/colors.txt","rt") as f:
+                with open("/home/kinder/git/PinMayhem/projects/circle/colors.txt","rt") as f:
                    txt = random.choice(f.readlines())
                    txt = txt.split(";")
                    color = eval(txt[0]); goup = eval(txt[1])
