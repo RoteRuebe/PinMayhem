@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/python3
 import random, math, time, os, sys
 
 import matplotlib.pyplot as plt
@@ -81,22 +81,22 @@ def pi(repetition=500000,plot=True,infinite=False,PlotEvery=1,PrintEvery=1,visua
                     break
             
             if counter % PrintEvery == 0:
-                print "",approx
+                print("",approx)
                 if diff >= 0:
-                    print "","%.11f"%(diff)
+                    print("","%.11f"%(diff))
                 else:
-                    print "%.11f"%(diff) 
-                print "\033[3A"
+                    print("%.11f"%(diff)) 
+                print("\033[3A")
                 
             counter += 1
             time.sleep(delay)
             
         except:
-            print "aproximation:",4/(float(points[0])/points[1])
-            print "better aporximation:",math.pi
-            print "difference:",4/(float(points[0])/points[1]) - math.pi
+            print("aproximation:",4/(float(points[0])/points[1]))
+            print("better aporximation:",math.pi)
+            print("difference:",4/(float(points[0])/points[1]) - math.pi)
             os.system('setterm -cursor on')
             break
         
-print""*3
+print(""*3)
 pi(infinite=True,visualise=True,plot=True,delay=0,PlotEvery=1,PrintEvery=1)

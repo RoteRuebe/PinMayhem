@@ -5,7 +5,7 @@ class select:
     def __init__ (self,choices,box):
         self.l = choices
         self.i = 0
-        self.h = ""
+        self.h = "up"
         self.screen = box
 
     def up(self):

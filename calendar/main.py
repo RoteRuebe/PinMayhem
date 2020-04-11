@@ -2,11 +2,6 @@
 import os, subprocess, selector, time, curses, create, sys
 from datetime import date
 from curses.textpad import rectangle
-from multiprocessing import Process
-
-def beep():     #to be able to run it in the background
-    curses.beep()
-    
 
 class main:
     def __init__ (self,stdscr):
@@ -56,13 +51,12 @@ class main:
             258:"self.selector.down()", #down
             10:"self.mode = 'view'",    #enter
             263:"self.mode = 'select'", #backspace
-            113:"self.exit()",           #q
+            113:"self.exit()",          #q
             8:"self.delete()" ,         #ctr-backspace
             101:"self.edit()"           #e
         }
         try:
             key = self.screen.getch()
-            
             exec(t[key])
             
         except KeyError:
@@ -118,8 +112,8 @@ class main:
                 self.show_select()
                 
             elif self.mode == "view":
-                self.mode = "select"
                 self.new()
+                self.mode = "select"
                 
         elif self.selector.get_selected() == "--------":
             if self.selector.h == "down":
@@ -162,13 +156,13 @@ class main:
             else:
                 effect = 3           
             box.addstr(box.getyx()[0]+2,0,str(self.daysleft())+" days left",curses.color_pair(effect))
-        except: pass    
+        except: pass
     
         t = ["could be ignored","should not be ignored","absolutely fucking important"]
         try: 
             box.addstr(box.getyx()[0]+2,0,t[int(self.data["importance"])-1],curses.color_pair(self.data["importance"]))
         except:
-            box.addstr(box.getyx()[0]+2,0,str("importance: "+self.data["importance"]))
+            box.addstr(box.getyx()[0]+2,0,str("importance: "+str(self.data["importance"])))
             
         box.refresh()
         
@@ -193,10 +187,23 @@ class main:
         self.clear()
         x = 68
         y = 12
-        m = curses.newwin(20,80,int(self.height/2-y/2),int(self.width/2-x/2))
+        m = curses.newwin(10,71,int(self.height/2-y/2),int(self.width/2-x/2))
         m.addstr(subprocess.getoutput("toilet -f mono12 goodbye"),curses.A_REVERSE)
         m.refresh()
         time.sleep(1)
         sys.exit()
 
-curses.wrapper(main)
+if len(sys.argv) == 2 and sys.argv[1] == "--help":
+    s = \
+"""
+press enter to change to view mode and backspace to return to select mode
+
+when hovering over an entry press e, to make changes to it
+in edit mode, press ctrl+c to abort or ctr+d to save changes
+
+create a new entry by selecting <new> (the shortcuts are the same to change mode)
+abort the programm with ctr-c or q!
+"""
+    print(s) 
+else:
+    curses.wrapper(main)

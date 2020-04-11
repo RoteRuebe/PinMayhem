@@ -37,8 +37,9 @@ def main(box, mode, filename="", data={}):
     
     try:
         txt.edit(terminate)
-    except:
+    except KeyboardInterrupt:
         exit()
+        return
     
     message = txt.gather().split("\n")
 
@@ -68,10 +69,9 @@ def main(box, mode, filename="", data={}):
     
 def exit():
     curses.curs_set(False)
-    return
     
 def terminate(x):
-    if x == 10 and curses.getsyx()[0] == 8: #backspace or enter
+    if x == 4 or (x == 10 and curses.getsyx()[0] == 8): #d or enter
         return 7
     else:
         return x
