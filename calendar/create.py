@@ -38,6 +38,7 @@ def main(box, mode, filename="", data={}):
     try:
         txt.edit(terminate)
     except KeyboardInterrupt:
+        exit()
         return
     
     message = txt.gather().replace("-","").split("\n")
