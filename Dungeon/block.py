@@ -1,26 +1,30 @@
 #!/usr/bin/env python3
 import random
 class block:
-    def __init__ (self,name,char,walkable):
+    def __init__ (self,char,walkable,world):
         """a block represents one tile on the map."""
-        self.name = name
+        self.world = world
         self.char = char
         self.walkable = walkable
         
     def tick(self):
         """this function gets called every unit of time.
-        you may return certain requests. 
+        you may return certain requests.
         
         Replace yourself with another object by returning
-        {"replace":<new instance>} """
+        {"replace":<new instance>} 
+        """
         
         return {}
     
-    def interact(self,how):
-        """this function gets called if this object is being interacted with.
-        "how" determines how it is being interacted with"""
+    def interact(self,who,tool):
+        """this function gets called if this object is being interacted with,
+        by "who" and with "what" 
+        {"append":["all the drops from interaction inside a list"]}
+        {"remove":[everything that should be removed]}
+        """
         
-        return {"error":"interactions are not specified"}
+        return {"error":"interaction not specified"}
         
     def collision(self,other):
         """this function gets called, when an entity is colliding with this object
@@ -34,35 +38,64 @@ class block:
             return {"walk":False}
         
 class tree(block):
-    def __init__ (self):
-        block.__init__(self,"tree","T",False)
+    name = "tree"
+    def __init__ (self,world):
+        block.__init__(self, "T",False,world)
         self._choped = False
         
-    def interact(self,how):
-        if how == "chop":
+    def interact(self,who,tool):
+        if tool.lookup["tree"]: 
             self._choped = True
-            return {"drops":("log",)*int(random.uniform(1,3))}
+            return {"append":("log",)*int(random.uniform(1,3))}
         
         return {"error":"unknown interaction"}
             
     def tick(self):
         if self._choped:
-            return  {"replace":earth()}
+            return  {"replace":earth}
         else:
             return {}
         
 class earth(block):
-    def __init__ (self):
-        block.__init__(self,"earth","e",True)
+    name = "earth"
+    def __init__ (self,world):
+        block.__init__(self,"e",True,world)
         
     def tick(self):
         r = random.random()
-        if r < 0.01:
-            return {"replace":grass()}
+        if r < 0.001/self.world.tickrate:
+            return {"replace":grass}
             
         return {}
 
 class grass(block):
-    def __init__ (self):
-        block.__init__(self,"grass","g",True)
+    name = "grass"
+    def __init__ (self,world):
+        block.__init__(self,"g",True,world)
         
+        
+class workbench(block):
+    craft_table = \
+    {"placeholder":("log",),
+     "yeehaw":("log","log")}
+    name = "workbench"
+    def __init__ (self,world):
+        block.__init__(self,"W",False,world)
+        
+    def tick(self):
+        return {}
+        
+    def interact(self,who,tool):
+        if "craft" in tool.lookup.keys() and tool.lookup["craft"]:
+                
+            c = self.world.menu( list(workbench.craft_table.keys()) )
+            if who.inv_check(workbench.craft_table[c]):
+                return {"remove":workbench.craft_table[c],
+                        "append":(c,)}
+            else:
+                return {}
+            
+            
+        else:
+            return {}
+            
