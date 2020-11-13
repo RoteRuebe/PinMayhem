@@ -16,9 +16,9 @@ def main(box, mode, filename="", data={}):
     box.addstr(1,0,"title:")
     box.addstr(2,0,"desc:")
     box.addstr(3,0,"info:")
-    box.addstr(4,0,"from:")
-    box.addstr(5,0,"until:")
-    box.addstr(6,0,"importance:")
+    box.addstr(4,0,"until:")
+    box.addstr(5,0,"importance:")
+    box.addstr(6,0,"url:")
     
     box.refresh()
     
@@ -46,7 +46,7 @@ def main(box, mode, filename="", data={}):
     for i,m in enumerate(message):
         message[i] = m.strip()
         
-    d = {"title":"","desc":"","info":"","from":"","until":"","importance":0}
+    d = {"title":"","desc":"","info":"","until":"","importance":0,"url":""}
     for key,m in zip(d.keys(),message[1:]):
             d[key] = m
             

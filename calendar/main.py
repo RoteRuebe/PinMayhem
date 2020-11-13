@@ -13,11 +13,7 @@ class main:
         self.ey = curses.LINES-3
         self.width = self.ex - self.ax
         self.height = self.ey -self.ay
-        s_selection = curses.newwin(self.height,int(self.width/3),self.ay,self.ax)
-        self.selector = selector.select([],s_selection)
-        self.control_entrys = ["--------","<new>"]
-        
-        self.loaddata()
+        self.control_entrys = ["--------","<new>","<options>"]
         
         curses.init_pair(1,curses.COLOR_WHITE,curses.COLOR_GREEN)
         curses.init_pair(2,curses.COLOR_WHITE,curses.COLOR_YELLOW)
@@ -25,6 +21,7 @@ class main:
         
         self.screen = stdscr
         rectangle(self.screen,0,0,curses.LINES-1,curses.COLS-2)
+        self.screen.refresh()
 
 
         
@@ -34,74 +31,79 @@ class main:
         self.s_select_data = self.body.subwin(self.height,int(self.width*(2/3)), \
                                            self.ay,int(self.width/3))
 
+        s_selection = curses.newwin(self.height,int(self.width/3-2),self.ay,self.ax)
+        self.selector = selector.select([],s_selection)
+
+        self._loadentries()
+
+
         
         
-        self.data = None
+        self.data = {"title":"Welcome to this programm","desc":"Tutorial coming soon","info":"","from":"","until":"","importance":1}
         self.mode = "select"
-        self.screen.refresh()
-        
+        self.display()
+
         while True:
             self.loop()
         
         
     def loop(self):
-        self.show()
+        #manage key input
         t = {
             259:"self.selector.up()",   #up
             258:"self.selector.down()", #down
             10:"self.mode = 'view'",    #enter
             263:"self.mode = 'select'", #backspace
             113:"self.exit()",          #q
-            8:"self.delete()" ,         #ctr-backspace
-            101:"self.edit()"           #e
+            8:"self.delete_entry()" ,   #ctr-backspace
+            101:"self.edit_entry()",    #e
+            117:"self.open_url()"       #u
         }
+
+        update_display = [10,263]
         try:
             key = self.screen.getch()
             exec(t[key])
+            if key in update_display:
+                self._refresh_display()
             
         except KeyError:
             pass
         
         except KeyboardInterrupt:
             self.exit()
-            
-        if key in [259,258]:
-            while self.mode == "view" and self.selector.get_selected() in self.control_entrys:
+
+        #if control entry reached in view mode, skip all controll entries
+        if self.mode == "view" and key in (258, 259) and self.selector.get_selected() in self.control_entrys:
+            while self.selector.get_selected() in self.control_entrys:
                 if self.selector.h == "up":
                     self.selector.up()
                 elif self.selector.h == "down":
                     self.selector.down()
-            
-    def show(self):
+
         if self.selector.get_selected() in self.control_entrys:
-            self.control()
-            
-        else:
+            self.manage_control()
+
+        if self.selector.get_selected() not in self.control_entrys:
             with open(self.selector.get_selected()) as f:
                 self.data = eval(f.read())
-                                    
+    
+        self.display()            
+            
+    def display(self):
         if self.mode == "select":
-            self.show_select()
+            self._display_select()
             
         elif self.mode == "view":
-            self.show_view()
-        
-    def show_view(self):
-        self.clear()
-        self.file_info(self.body)
-        s = "{}/{}".format(self.selector.i+1,len(self.selector.l)-len(self.control_entrys))
-        self.body.addstr(0,self.ex-len(s)-3,s)
-        self.body.refresh()
+            self._display_view()
 
-    def show_select(self):
-        self.clear()
-        self.selector.display()
-        self.file_info(self.s_select_data)
-        
-        self.s_select_data.refresh()
-        
-        
-    def control(self):
+    def manage_control(self):
+        if self.selector.get_selected() == "--------":
+            if self.selector.h == "down":
+                self.selector.down()
+            elif self.selector.h == "up":
+                self.selector.up()
+
         if self.selector.get_selected() == "<new>":
             if self.mode == "select":
                 self.data = {
@@ -109,44 +111,58 @@ class main:
                     "desc":"just hit enter",
                     "info":"","from":"","until":"","importance":""
                 }
-                self.show_select()
-                
             elif self.mode == "view":
+                create.main(self.body,"create")
                 self.mode = "select"
-                self.new()
-                
-        elif self.selector.get_selected() == "--------":
-            if self.selector.h == "down":
-                self.selector.down()
-            elif self.selector.h == "up":
-                self.selector.up()
-                
-            self.show()
-                
-    def new (self):
-        self.clear()
+                return
+
+        if self.selector.get_selected() == "<options>":
+            self.data = {
+                "title":"change settings",
+                "desc":"coming soon",
+                "info":"","from":"","until":"","importance":""
+            }
+
+    def _display_view(self):
+        self._display_file(self.body)
+        s = "{}/{}".format(self.selector.i+1,len(self.selector.l)-len(self.control_entrys))
+        self.body.addstr(0,self.ex-len(s)-3,s)
+        self.body.refresh()
+        self.body.clear()
+
+    def _display_select(self):
+        self.selector.display()
+        self._display_file(self.s_select_data)
+        self.selector.display()
+        self.s_select_data.refresh()
+        self.s_select_data.clear()\
+
+    def open_url(self):
+        subprocess.run("/mnt/c/Windows/SysWOW64/clip.exe",text=True,input=self.data['url'])
+        
+    def create_entry (self):
+        self._refresh_display()  #this should be in loop function / is done there?
         create.main(self.body,"new")
-        self.loaddata()
-        self.show()
+        self._loadentries()
+        self.display()  # this is already done in loop function i think, not gonna delete it though you never know
         
-    def edit(self):
-        self.clear()
+    def edit_entry(self):
+        self._refresh_display()  # this too
         create.main(self.body,"edit",self.selector.get_selected(),self.data)
-        self.loaddata()
-        self.show()
+        self._loadentries()
+        self.display()
         
-    def delete(self):
+    def delete_entry(self):
         subprocess.getoutput("rm "+"'"+self.selector.get_selected()+"'")
         self.loaddata()
-        self.show()
+        self.display()
         
-    def file_info(self,box):
+    def _display_file(self,box):
         box.move(0,0)
         box.addstr(self.data["title"],curses.A_BOLD)
         box.addstr(box.getyx()[0]+2,0,self.data["desc"])
         box.addstr(box.getyx()[0]+1,0,"_____________")
         box.addstr(box.getyx()[0]+2,0,self.data["info"])
-        box.addstr(box.getyx()[0]+2,0,"from: "+self.data["from"])
         box.addstr(box.getyx()[0]+2,0,"till: "+self.data["until"])
         try:
             if self.daysleft() >= 4:
@@ -154,8 +170,8 @@ class main:
             elif self.daysleft() >= 3:
                 effect = 2
             else:
-                effect = 3           
-            box.addstr(box.getyx()[0]+2,0,str(self.daysleft())+" days left",curses.color_pair(effect))
+                effect = 3
+            box.addstr(box.getyx()[0]+2,0,str(self._daysleft())+" days left",curses.color_pair(effect))
         except: pass
     
         t = ["could be ignored","should not be ignored","absolutely fucking important"]
@@ -166,27 +182,27 @@ class main:
             
         box.refresh()
         
-    def clear(self):
+    def _refresh_display(self):
         self.s_select_data.clear()
         self.body.clear()
         self.s_select_data.refresh()
         self.body.refresh()
-        
-    def loaddata(self,):
+
+    def _loadentries(self):
         out = subprocess.getoutput("ls")
         self.out = out.split("\n")
         if not self.out[0]:
             self.out = []
         self.selector.l = self.out+self.control_entrys
         
-    def daysleft(self):
+    def _daysleft(self):
         until = date(*tuple(map(int,self.data["until"].split(".")))[::-1])
         today = date(*tuple(map(int,time.strftime("%Y/%m/%d").split("/"))))
         return (until-today).days
     
     def exit(self):
         #subprocess.getoutput("cp ./* ../upload")
-        self.clear()
+        self.screen.refresh()
         x = 68
         y = 12
         m = curses.newwin(10,71,int(self.height/2-y/2),int(self.width/2-x/2))
